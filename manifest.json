@@ -1,0 +1,9 @@
+{
+  "name": "RollerKey",
+  "short_name": "RollerKey",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b0f0a",
+  "theme_color": "#0b0f0a",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
