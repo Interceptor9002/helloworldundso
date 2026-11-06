@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RollerKey</title>
+<meta name="theme-color" content="#0b0f0a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--g:#a6ff4d;--g2:#79d321;--bg:#0b0f0a;--p:#141a12;--p2:#1b2318;
+--line:#2b3724;--tx:#e9f3e3;--dim:#95a68b;--rot:#ff6b60;--gelb:#ffc247}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:#0b0f0a;color:var(--tx);font:16px/1.45 -apple-system,
+BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+padding:14px 13px 40px;max-width:560px;margin:0 auto}
+h1{font-size:19px;margin:0;letter-spacing:-.3px}
+header{display:flex;align-items:center;gap:9px;margin:0 0 12px}
+#pill{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+padding:5px 9px;border-radius:99px;border:1px solid var(--line);color:var(--dim);
+white-space:nowrap;max-width:52%;overflow:hidden;text-overflow:ellipsis}
+#pill.on{color:#0b0f0a;background:var(--g);border-color:var(--g)}
+.card{background:linear-gradient(180deg,var(--p2),var(--p));border:1px solid var(--line);
+border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);
+margin:0 0 10px}
+#status{background:#101710;border:1px solid var(--line);border-left:3px solid var(--g);
+border-radius:10px;padding:11px;margin:0 0 12px;font-size:14px;line-height:1.5}
+#status.ok{border-left-color:var(--g);color:#d8ffbc}
+#status.warn{border-left-color:var(--gelb);color:#ffe4a8}
+#status.err{border-left-color:var(--rot);color:#ffc9c4}
+button{font:inherit;font-weight:650;border-radius:12px;border:1px solid var(--line);
+background:#1a2316;color:var(--tx);padding:13px;cursor:pointer}
+button:active{transform:scale(.985)}
+button:disabled{opacity:.35}
+button.primary{background:linear-gradient(180deg,var(--g),var(--g2));color:#0b0f0a;
+border-color:transparent}
+button.ghost{background:transparent;color:var(--dim)}
+button.xl{padding:20px;font-size:18px;letter-spacing:.5px}
+button.big{padding:16px 10px;font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.wide{grid-column:1/-1}
+.hint{font-size:12.5px;color:var(--dim);margin:10px 0 0;line-height:1.55}
+.hint b{color:var(--tx)}
+ol{margin:8px 0 0;padding-left:20px;font-size:13px;color:var(--dim);line-height:1.7}
+ol b{color:var(--tx)}
+input[type=text],select{width:100%;margin-top:5px;background:#0d120b;color:var(--tx);
+border:1px solid var(--line);border-radius:10px;padding:10px;font-size:16px;
+font-family:ui-monospace,Menlo,monospace;-webkit-appearance:none;appearance:none}
+input[type=range]{width:100%;accent-color:var(--g2);height:28px;margin:4px 0 0}
+label{display:block;font-size:12px;color:var(--dim);margin:0 0 9px}
+.chk{display:flex;align-items:center;gap:9px;font-size:13.5px;margin:9px 0}
+.chk input{width:19px;height:19px;accent-color:var(--g2);margin:0}
+details.card{padding:0}
+details.card>summary{padding:14px;cursor:pointer;font-size:11px;letter-spacing:1.2px;
+text-transform:uppercase;color:var(--dim);list-style:none}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::before{content:"▸ ";color:var(--g2)}
+details.card[open]>summary::before{content:"▾ "}
+.dbody{padding:0 14px 14px}
+#log{height:230px;overflow:auto;background:#080b07;border:1px solid var(--line);
+border-radius:10px;padding:9px;font:11.5px/1.55 ui-monospace,Menlo,monospace}
+.ln{display:flex;gap:7px;word-break:break-all}
+.ln .t{color:#485840;flex:none}
+.ln.tx .m{color:var(--g)}.ln.rx .m{color:#6cc7ff}.ln.err .m{color:var(--rot)}
+.ln.ok .m{color:#3ddc84}.ln.warn .m{color:var(--gelb)}.ln.dim .m{color:var(--dim)}
+.aus{display:none}
+#cockpit{position:fixed;inset:0;z-index:80;background:#070a06;
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+padding:24px 20px}
+#bCockClose{position:absolute;top:16px;right:16px;padding:10px 16px;font-size:13px;
+border-color:#3b4a33;color:var(--dim)}
+.ckSpd{display:flex;align-items:baseline;gap:8px}
+.ckSpd span{font-size:110px;font-weight:800;color:var(--g);line-height:1;
+font-variant-numeric:tabular-nums;letter-spacing:-4px}
+.ckSpd small{font-size:20px;color:var(--dim)}
+.ckRow{display:flex;gap:34px}
+.ckRow div{text-align:center}
+.ckRow span{font-size:10px;letter-spacing:2px;color:var(--dim);display:block}
+.ckRow b{font-size:26px;color:var(--tx);display:block;margin-top:4px}
+.ckBtns{display:flex;gap:12px;width:100%;max-width:340px}
+.ckBtns button{flex:1;padding:18px;font-size:15px}
+</style>
+</head>
+<body>
+
+<div id="cockpit" class="aus">
+  <button id="bCockClose" class="ghost">SCHLIESSEN ✕</button>
+  <div class="ckSpd"><span id="ckSpd">0</span><small>km/h</small></div>
+  <div class="ckRow">
+    <div><span>AKKU</span><b id="ckBat">–</b></div>
+    <div><span>ZUSTAND</span><b id="ckZust">unbekannt</b></div>
+  </div>
+  <div class="ckBtns">
+    <button id="bCkUnlock" class="primary">ENTSPERREN</button>
+    <button id="bCkLock">SPERREN</button>
+  </div>
+</div>
+
+<header><h1>🛴 RollerKey</h1><div id="pill">aus</div></header>
+
+<div id="status">Bereit.</div>
+
+<section class="card">
+  <h2>So geht es</h2>
+  <ol>
+    <li>Bluetooth am Handy <b>einschalten</b>.</li>
+    <li>Stell dich <b>neben den Roller</b>.</li>
+    <li><b>VERBINDEN</b> drücken und den Roller in der Liste wählen.</li>
+    <li><b>ENTSPERREN</b> drücken. Warte bis zu 20 Sekunden.</li>
+  </ol>
+  <p class="hint">Bluefy (iPhone) oder Chrome (Android). Kein Konto, keine Karte.</p>
+</section>
+
+<section class="card">
+  <button id="bConn" class="primary xl">VERBINDEN</button>
+  <div class="grid" style="margin-top:9px">
+    <button id="bUnlock" class="primary big" disabled>ENTSPERREN</button>
+    <button id="bLock" class="big" disabled>SPERREN</button>
+    <button id="bCock" class="big" disabled>COCKPIT</button>
+    <button id="bForever" class="big" disabled>FREI HALTEN</button>
+    <button id="bBeep" class="ghost" disabled>HUPE</button>
+    <button id="bDrop" class="ghost" disabled>TRENNEN</button>
+  </div>
+  <label style="margin-top:10px">Marke
+    <select id="marke">
+      <option value="auto">automatisch erkennen</option>
+      <option value="lime">Lime</option>
+      <option value="voi">Voi</option>
+      <option value="dott">Dott</option>
+      <option value="bolt">Bolt</option>
+    </select></label>
+  <p class="hint" id="erkannt">Noch nichts erkannt.</p>
+</section>
+
+<section class="card">
+  <h2>Server-Weg</h2>
+  <p class="hint" style="margin-top:0">Für Roller, die ohne Freigabe vom Server zu bleiben.
+  Braucht Internet. Konto und Karte werden automatisch angelegt, die Karte ist eine
+  Demo — es wird nichts abgebucht.</p>
+  <button id="bServer" class="wide" style="margin-top:8px">SERVER-WEG STARTEN</button>
+  <p class="hint" id="srvOut">noch nicht benutzt</p>
+</section>
+
+<section class="card">
+  <h2>Geschwindigkeit</h2>
+  <label>Tempo-Grenze <b id="tv">25</b> km/h
+    <input id="tune" type="range" min="5" max="35" step="1" value="25"></label>
+  <div class="grid">
+    <button id="bApply" class="ghost" disabled>ÜBERNEHMEN</button>
+    <button id="bSpeedReset" class="ghost" disabled>AUF 20 ZURÜCK</button>
+  </div>
+  <button id="bBoost" class="wide" style="margin-top:9px" disabled>BOOST — OHNE ALLE GRENZEN</button>
+  <label style="margin-top:10px">Register (Hex) <input id="reg" type="text" value="0D"></label>
+  <button id="bRead" class="ghost wide" style="margin-top:8px" disabled>REGISTER LESEN</button>
+  <p class="hint"><b>Boost</b> schaltet Testmodus, setzt alles auf Maximum und hebt die
+  Grenze auf. Der Roller gibt dann alles. Akku hält deutlich kürzer.</p>
+</section>
+
+<details class="card">
+  <summary>Wenn es nicht aufgeht</summary>
+  <div class="dbody">
+    <ol>
+      <li>Näher rangehen, Handy ruhig halten.</li>
+      <li>Nochmal VERBINDEN und ENTSPERREN.</li>
+      <li>Bluetooth aus und wieder an.</li>
+      <li>Server-Weg probieren.</li>
+      <li>Anderen Roller derselben Marke probieren.</li>
+    </ol>
+  </div>
+</details>
+
+<details class="card">
+  <summary>Diagnose</summary>
+  <div class="dbody">
+    <label>Schreibkanal <select id="wsel"><option value="">– keiner –</option></select></label>
+    <label>Schreibart <select id="wmode">
+      <option value="auto">automatisch</option>
+      <option value="resp">mit Antwort</option>
+      <option value="noresp">ohne Antwort</option>
+    </select></label>
+    <div class="chk"><input type="checkbox" id="oBcast"><span>An alle Kanäle senden</span></div>
+    <div class="chk"><input type="checkbox" id="oLife" checked><span>Lebenszeichen alle 2 s</span></div>
+    <div class="chk"><input type="checkbox" id="oRecon" checked><span>Neu verbinden und wiederholen</span></div>
+    <button id="bShot" class="ghost wide" style="margin-top:6px" disabled>TESTLAUF (alle Formate)</button>
+    <button id="bGatt" class="ghost wide" style="margin-top:6px">GERÄT ANZEIGEN</button>
+  </div>
+</details>
+
+<details class="card">
+  <summary>Nummer und Passwort</summary>
+  <div class="dbody">
+    <label>Erste 8 Ziffern der Roller-Nummer
+      <input id="imei" type="text" placeholder="z. B. 86123456"></label>
+    <div class="grid">
+      <button id="bImei" class="ghost">NUMMER SUCHEN</button>
+      <button id="bPw" class="ghost">PASSWORT RECHNEN</button>
+    </div>
+    <p class="hint" id="pwOut">Das Passwort steckt im Bluetooth-Namen. Mit den ersten
+    8 Ziffern wird der Rest gesucht. Dauert wenige Sekunden.</p>
+  </div>
+</details>
+
+<details class="card">
+  <summary>Eigener Befehl</summary>
+  <div class="dbody">
+    <label>Befehl (Hex, z. B. 1661) <input id="cCmd" type="text" value="1661"></label>
+    <label>Daten (Hex, optional) <input id="cPay" type="text" placeholder="F1"></label>
+    <button id="bSend" class="ghost wide">SENDEN</button>
+    <label style="margin-top:10px">Freier Text oder Hex <input id="cRaw" type="text"></label>
+    <button id="bRaw" class="ghost wide">ROH SENDEN</button>
+  </div>
+</details>
+
+<section class="card">
+  <h2>Protokoll</h2>
+  <div id="log"></div>
+  <div class="grid" style="margin-top:9px">
+    <button id="bClear" class="ghost">LEEREN</button>
+    <button id="bCopy" class="ghost">KOPIEREN</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Relay</h2>
+  <input id="iRelay" type="text" placeholder="https://name.workers.dev">
+  <div class="grid" style="margin-top:8px">
+    <button id="bRelay" class="ghost">SPEICHERN</button>
+    <button id="bSrvWeg" class="ghost">SERVER-DATEN LÖSCHEN</button>
+  </div>
+  <p class="hint">Nur für den Server-Weg nötig. Adresse deines Cloudflare-Workers.</p>
+</section>
+
+<script src="protokoll.js" defer></script>
+<script src="netz.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>
