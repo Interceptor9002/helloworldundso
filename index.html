@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lime Gen4</title>
+<meta name="theme-color" content="#0b0f0a">
+<style>
+:root{--g:#a6ff4d;--g2:#79d321;--p2:#1b2318;--line:#2b3724;--tx:#e9f3e3;--dim:#95a68b;--rot:#ff6b60;--gelb:#ffc247}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:#0b0f0a;color:var(--tx);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:14px 13px 40px;max-width:560px;margin:0 auto}
+h1{font-size:19px;margin:0}
+header{display:flex;align-items:center;gap:9px;margin:0 0 12px}
+#pill{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:5px 9px;border-radius:99px;border:1px solid var(--line);color:var(--dim);max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#pill.on{color:#0b0f0a;background:var(--g);border-color:var(--g)}
+.card{background:linear-gradient(180deg,var(--p2),#141a12);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin:0 0 10px}
+#status{background:#101710;border-left:3px solid var(--g);border-radius:10px;padding:11px;margin:0 0 12px;font-size:14px}
+#status.ok{border-left-color:var(--g);color:#d8ffbc}
+#status.warn{border-left-color:var(--gelb);color:#ffe4a8}
+#status.err{border-left-color:var(--rot);color:#ffc9c4}
+button{font:inherit;font-weight:650;border-radius:12px;border:1px solid var(--line);background:#1a2316;color:var(--tx);padding:13px;cursor:pointer;touch-action:manipulation}
+button:active{transform:scale(.985)}
+button:disabled{opacity:.35}
+button.primary{background:linear-gradient(180deg,var(--g),var(--g2));color:#0b0f0a;border-color:transparent}
+button.ghost{background:transparent;color:var(--dim)}
+button.xl{padding:20px;font-size:18px}
+button.big{padding:16px 10px;font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.wide{grid-column:1/-1}
+.hint{font-size:12.5px;color:var(--dim);margin:10px 0 0;line-height:1.55}
+.hint b{color:var(--tx)}
+ol{margin:8px 0 0;padding-left:20px;font-size:13px;color:var(--dim);line-height:1.7}
+ol b{color:var(--tx)}
+input,select{width:100%;margin-top:5px;background:#0d120b;color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:16px;font-family:ui-monospace,Menlo,monospace}
+label{display:block;font-size:12px;color:var(--dim);margin:0 0 9px}
+.chk{display:flex;align-items:center;gap:9px;font-size:13.5px;margin:9px 0}
+.chk input{width:19px;height:19px;accent-color:var(--g2);margin:0}
+details.card{padding:0}
+details.card>summary{padding:14px;cursor:pointer;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);list-style:none}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::before{content:"▸ ";color:var(--g2)}
+details.card[open]>summary::before{content:"▾ "}
+.dbody{padding:0 14px 14px}
+#log{height:220px;overflow:auto;background:#080b07;border:1px solid var(--line);border-radius:10px;padding:9px;font:11.5px/1.55 ui-monospace,Menlo,monospace}
+.ln{display:flex;gap:7px;word-break:break-all}
+.ln .t{color:#485840;flex:0 0 auto}
+.ln.tx .m{color:var(--g)}
+.ln.rx .m{color:#6cc7ff}
+.ln.err .m{color:var(--rot)}
+.ln.ok .m{color:#3ddc84}
+.ln.warn .m{color:var(--gelb)}
+.ln.dim .m{color:var(--dim)}
+#ck{position:fixed;inset:0;z-index:80;background:#070a06;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px 20px}
+#ck:not(.aus){display:flex}
+#ckZu{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));right:16px;padding:12px 18px;font-size:14px;background:#1a2316;border-color:#3b4a33;color:var(--tx);z-index:2}
+.spd{display:flex;align-items:baseline;gap:8px}
+.spd span{font-size:110px;font-weight:800;color:var(--g);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-4px}
+.spd small{font-size:20px;color:var(--dim)}
+.zeile{display:flex;gap:34px}
+.zeile div{text-align:center}
+.zeile span{font-size:10px;letter-spacing:2px;color:var(--dim);display:block}
+.zeile b{font-size:26px;display:block;margin-top:4px}
+.ckb{display:flex;gap:12px;width:100%;max-width:340px}
+.ckb button{flex:1;padding:18px;font-size:15px}
+</style>
+</head>
+<body>
+
+<div id="ck" class="aus">
+  <button id="ckZu">SCHLIESSEN ✕</button>
+  <div class="spd"><span id="ckSpd">0</span><small>km/h</small></div>
+  <div class="zeile">
+    <div><span>AKKU</span><b id="ckBat">–</b></div>
+    <div><span>ZUSTAND</span><b id="ckZust">unbekannt</b></div>
+  </div>
+  <div class="ckb">
+    <button id="ckAuf" class="primary">ENTSPERREN</button>
+    <button id="ckZuBtn">SPERREN</button>
+  </div>
+</div>
+
+<header><h1>🛴 Lime Gen4</h1><div id="pill">aus</div></header>
+<div id="status">Bereit. Erst verbinden.</div>
+
+<section class="card">
+  <h2>So geht es</h2>
+  <ol>
+    <li>Bluetooth an, <b>direkt neben den Roller</b> stellen.</li>
+    <li><b>VERBINDEN</b>, in der Liste <b>lime-…</b> wählen.</li>
+    <li>Das Passwort kommt <b>aus dem Namen</b> — nichts eintippen.</li>
+    <li><b>ENTSPERREN</b>. Wenn es nicht aufgeht: <b>TESTLAUF</b> in der Diagnose.</li>
+  </ol>
+  <p class="hint">Für Gen4: es werden alle Dienste abgeklopft und alle bekannten Befehlsformen durchprobiert.</p>
+</section>
+
+<section class="card">
+  <button id="bConn" class="primary xl">VERBINDEN</button>
+  <div class="grid" style="margin-top:9px">
+    <button id="bAuf" class="primary big" disabled>ENTSPERREN</button>
+    <button id="bZu" class="big" disabled>SPERREN</button>
+    <button id="bCk" class="big" disabled>COCKPIT</button>
+    <button id="bFrei" class="big" disabled>FREI HALTEN</button>
+    <button id="bTon" class="ghost" disabled>HUPE</button>
+    <button id="bWeg" class="ghost" disabled>TRENNEN</button>
+  </div>
+  <div class="chk"><input type="checkbox" id="oAlle" checked><span>alle Geräte zeigen</span></div>
+  <p class="hint" id="pwOut">Passwort: noch keins.</p>
+</section>
+
+<details class="card" open>
+  <summary>Diagnose</summary>
+  <div class="dbody">
+    <label>Schreibkanal <select id="wsel"><option value="">– keiner –</option></select></label>
+    <label>Schreibart <select id="wmode">
+      <option value="auto">automatisch</option>
+      <option value="resp">mit Antwort</option>
+      <option value="noresp">ohne Antwort</option>
+    </select></label>
+    <div class="chk"><input type="checkbox" id="oBcast"><span>an alle Kanäle senden</span></div>
+    <div class="chk"><input type="checkbox" id="oRecon" checked><span>neu verbinden und wiederholen</span></div>
+    <button id="bShot" class="ghost wide" style="margin-top:6px" disabled>TESTLAUF (alle Formate)</button>
+  </div>
+</details>
+
+<details class="card">
+  <summary>Passwort von Hand</summary>
+  <div class="dbody">
+    <p class="hint" style="margin-top:0">Nur wenn der Name keine Kennung enthält. Die ersten 8 Ziffern der Roller-Nummer reichen.</p>
+    <label>Roller-Nummer <input id="imei" inputmode="numeric" placeholder="86123456…"></label>
+    <button id="bPw" class="ghost wide">PASSWORT RECHNEN</button>
+    <label style="margin-top:10px">Passwort <input id="pwFeld" placeholder="8 Hex-Zeichen"></label>
+  </div>
+</details>
+
+<details class="card">
+  <summary>Werkbank</summary>
+  <div class="dbody">
+    <label>Befehl (Hex) <input id="cCmd" value="1661"></label>
+    <label>Daten (Hex) <input id="cPay" placeholder="F1"></label>
+    <button id="bSend" class="ghost wide">SENDEN</button>
+    <label style="margin-top:10px">Freier Text oder Hex <input id="cRaw"></label>
+    <button id="bRaw" class="ghost wide">ROH SENDEN</button>
+  </div>
+</details>
+
+<section class="card">
+  <h2>Protokoll</h2>
+  <div id="log"></div>
+  <div class="grid" style="margin-top:9px">
+    <button id="bClear" class="ghost">LEEREN</button>
+    <button id="bCopy" class="ghost">KOPIEREN</button>
+  </div>
+</section>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const logEl = $("#log");
+const enc = s => new TextEncoder().encode(s);
+const hex = b => Array.from(b).map(x => x.toString(16).toUpperCase().padStart(2,"0")).join(" ");
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const DIENSTE = [
+  "00002c00-0000-1000-8000-00805f9b34fb","00002c01-0000-1000-8000-00805f9b34fb",
+  "00002c03-0000-1000-8000-00805f9b34fb","0000ffe0-0000-1000-8000-00805f9b34fb",
+  "0000ffe5-0000-1000-8000-00805f9b34fb","0000fff0-0000-1000-8000-00805f9b34fb",
+  "0000ff00-0000-1000-8000-00805f9b34fb","49535343-fe7d-4ae5-8fa9-9fafd205e455",
+  "6e400001-b5a3-f393-e0a9-e50e24dcca9e","0000fee7-0000-1000-8000-00805f9b34fb",
+  "0000fee9-0000-1000-8000-00805f9b34fb","0000fe95-0000-1000-8000-00805f9b34fb",
+  "0000180f-0000-1000-8000-00805f9b34fb"
+];
+
+const S={dev:null,verb:false,schreib:[],ziel:null,antwort:0,busy:false,hb:0,
+  pw:"",akku:0,tempo:0,gesperrt:true,cockAn:false,freiTimer:0};
+
+function log(t,c){
+  const d=document.createElement("div"); d.className="ln"+(c?" "+c:"");
+  const a=document.createElement("span"); a.className="t"; a.textContent=new Date().toTimeString().slice(0,8);
+  const m=document.createElement("span"); m.className="m"; m.textContent=t;
+  d.append(a,m); logEl.append(d);
+  while(logEl.children.length>600) logEl.firstChild.remove();
+  logEl.scrollTop=logEl.scrollHeight;
+}
+const stat=(t,a)=>{const e=$("#status");e.textContent=t;e.className=a||""};
+const pill=(t,an)=>{const e=$("#pill");e.textContent=t;e.className=an?"on":""};
+const setz=(id,w)=>{const e=$("#"+id); if(e) e.textContent=String(w)};
+const spaet=(k,v)=>{try{localStorage.setItem("lg_"+k,JSON.stringify(v))}catch(_){}};
+const hole=(k,d)=>{try{const r=localStorage.getItem("lg_"+k);return r===null?d:JSON.parse(r)}catch(_){return d}};
+
+function crc16(b){let c=0;for(const x of b){c^=x<<8;for(let i=0;i<8;i++)c=(c&0x8000)?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF}return c&0xFFFF}
+function frame(cmd,pay){
+  const p=pay?Array.from(pay):[]; const f=new Uint8Array(8+p.length);
+  f[0]=0x46;f[1]=0x43;f[2]=(cmd>>8)&0xFF;f[3]=cmd&0xFF;f[4]=p.length;
+  f.set(p,6); const c=crc16(f.subarray(0,6+p.length));
+  f[6+p.length]=(c>>8)&0xFF;f[7+p.length]=c&0xFF; return f;
+}
+function frameOk(b){
+  if(!(b instanceof Uint8Array)||b.length<8) return "zu kurz";
+  if(b[0]!==0x46||b[1]!==0x43) return "kein Rahmen";
+  if(((b[4]<<8)|b[5])!==b.length-8) return "Länge falsch";
+  const c=crc16(b.subarray(0,b.length-2));
+  if(((c>>8)&0xFF)!==b[b.length-2]||(c&0xFF)!==b[b.length-1]) return "Prüfsumme falsch";
+  return true;
+}
+let seq=1;
+function at(typ,daten,pw){
+  seq=(seq+1)&0xFFFF;
+  const s=seq.toString(16).toUpperCase().padStart(4,"0");
+  return enc("AT+"+typ+","+(pw||"000000")+","+Date.now()+","+s+(daten?",{"+daten+"}$\r\n":"$\r\n"));
+}
+function vonHex(s){const h=String(s||"").replace(/[^0-9a-f]/gi,"");const o=new Uint8Array(Math.floor(h.length/2));for(let i=0;i<o.length;i++)o[i]=parseInt(h.substr(i*2,2),16);return o}
+
+const DES=(()=>{
+  const n=s=>s.split(",").map(Number);
+  const P1=n("57,49,41,33,25,17,9,1,58,50,42,34,26,18,10,2,59,51,43,35,27,19,11,3,60,52,44,36,63,55,47,39,31,23,15,7,62,54,46,38,30,22,14,6,61,53,45,37,29,21,13,5,28,20,12,4");
+  const P2=n("14,17,11,24,1,5,3,28,15,6,21,10,23,19,12,4,26,8,16,7,27,20,13,2,41,52,31,37,47,55,30,40,51,45,33,48,44,49,39,56,34,53,46,42,50,36,29,32");
+  const SH=[1,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1];
+  const IP=n("58,50,42,34,26,18,10,2,60,52,44,36,28,20,12,4,62,54,46,38,30,22,14,6,64,56,48,40,32,24,16,8,57,49,41,33,25,17,9,1,59,51,43,35,27,19,11,3,61,53,45,37,29,21,13,5,63,55,47,39,31,23,15,7");
+  const FP=n("40,8,48,16,56,24,64,32,39,7,47,15,55,23,63,31,38,6,46,14,54,22,62,30,37,5,45,13,53,21,61,29,36,4,44,12,52,20,60,28,35,3,43,11,51,19,59,27,34,2,42,10,50,18,58,26,33,1,41,9,49,17,57,25");
+  const E=n("32,1,2,3,4,5,4,5,6,7,8,9,8,9,10,11,12,13,12,13,14,15,16,17,16,17,18,19,20,21,20,21,22,23,24,25,24,25,26,27,28,29,28,29,30,31,32,1");
+  const P=n("16,7,20,21,29,12,28,17,1,15,23,26,5,18,31,10,2,8,24,14,32,27,3,9,19,13,30,6,22,11,4,25");
+  const SB=[n("14,4,13,1,2,15,11,8,3,10,6,12,5,9,0,7,0,15,7,4,14,2,13,1,10,6,12,11,9,5,3,8,4,1,14,8,13,6,2,11,15,12,9,7,3,10,5,0,15,12,8,2,4,9,1,7,5,11,3,14,10,0,6,13"),
+  n("15,1,8,14,6,11,3,4,9,7,2,13,12,0,5,10,3,13,4,7,15,2,8,14,12,0,1,10,6,9,11,5,0,14,7,11,10,4,13,1,5,8,12,6,9,3,2,15,13,8,10,1,3,15,4,2,11,6,7,12,0,5,14,9"),
+  n("10,0,9,14,6,3,15,5,1,13,12,7,11,4,2,8,13,7,0,9,3,4,6,10,2,8,5,14,12,11,15,1,13,6,4,9,8,15,3,0,11,1,2,12,5,10,14,7,1,10,13,0,6,9,8,7,4,15,14,3,11,5,2,12"),
+  n("7,13,14,3,0,6,9,10,1,2,8,5,11,12,4,15,13,8,11,5,6,15,0,3,4,7,2,12,1,10,14,9,10,6,9,0,12,11,7,13,15,1,3,14,5,2,8,4,3,15,0,6,10,1,13,8,9,4,5,11,12,7,2,14"),
+  n("2,12,4,1,7,10,11,6,8,5,3,15,13,0,14,9,14,11,2,12,4,7,13,1,5,0,15,10,3,9,8,6,4,2,1,11,10,13,7,8,15,9,12,5,6,3,0,14,11,8,12,7,1,14,2,13,6,15,0,9,10,4,5,3"),
+  n("12,1,10,15,9,2,6,8,0,13,3,4,14,7,5,11,10,15,4,2,7,12,9,5,6,1,13,14,0,11,3,8,9,14,15,5,2,8,12,3,7,0,4,10,1,13,11,6,4,3,2,12,9,5,15,10,11,14,1,7,6,0,8,13"),
+  n("4,11,2,14,15,0,8,13,3,12,9,7,5,10,6,1,13,0,11,7,4,9,1,10,14,3,5,12,2,15,8,6,1,4,11,13,12,3,7,14,10,15,6,8,0,5,9,2,6,11,13,8,1,4,10,7,9,5,0,15,14,2,3,12"),
+  n("13,2,8,4,6,15,11,1,10,9,3,14,5,0,12,7,1,15,13,8,10,3,7,4,12,5,6,11,0,14,9,2,7,11,4,1,9,12,14,2,0,6,10,13,15,3,5,8,2,1,14,7,4,10,8,13,15,12,9,0,3,5,6,11")];
+  const bits=u=>{const o=[];for(const x of u)for(let i=7;i>=0;i--)o.push(x>>i&1);return o};
+  const pack=b=>{const o=new Uint8Array(b.length/8);for(let i=0;i<o.length;i++){let v=0;for(let j=0;j<8;j++)v=v<<1|b[i*8+j];o[i]=v}return o};
+  const pm=(b,t)=>t.map(i=>b[i-1]);
+  const ro=(b,x)=>b.slice(x).concat(b.slice(0,x));
+  function keys(k){
+    const kp=pm(bits(k),P1); let c=kp.slice(0,28),d=kp.slice(28); const out=[];
+    for(let i=0;i<16;i++){c=ro(c,SH[i]);d=ro(d,SH[i]);out.push(pm(c.concat(d),P2))}
+    return out;
+  }
+  function f(r){
+    const e=pm(r,E), x=[];
+    for(let i=0;i<8;i++){
+      const b=e[i*6]*32+e[i*6+1]*16+e[i*6+2]*8+e[i*6+3]*4+e[i*6+4]*2+e[i*6+5];
+      const v=SB[i][(((b>>4)&2)|(b&1))*16+((b>>1)&15)];
+      x.push(v>>3&1,v>>2&1,v>>1&1,v&1);
+    }
+    return pm(x,P);
+  }
+  return function(key,block){
+    const ks=keys(key), bp=pm(bits(block),IP);
+    let l=bp.slice(0,32), r=bp.slice(32);
+    for(let i=0;i<16;i++){const q=f(r); const nl=r; r=l.map((v,j)=>v^q[j]); l=nl}
+    return pack(pm(r.concat(l),FP));
+  };
+})();
+const FEST=Uint8Array.from([0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88]);
+function pwRechnen(z){
+  const s=String(z||"").replace(/\D/g,"");
+  if(s.length<8) return "";
+  const roh=enc(s.padEnd(16,"0"));
+  return (hex(DES(FEST,roh.slice(0,8)))+hex(DES(FEST,roh.slice(8,16)))).replace(/ /g,"");
+}
+function kennung(){
+  const m=((S.dev&&S.dev.name)||"").match(/([0-9A-Fa-f]{8})\s*$/);
+  return m?m[1].toUpperCase():"";
+}
+const pwJetzt=()=>S.pw||kennung();
+
+function cockAuf(){
+  S.cockAn=true; const e=$("#ck"); e.classList.remove("aus"); e.style.display="flex";
+  document.body.style.overflow="hidden"; setz("ckSpd",Math.round(S.tempo)); setz("ckBat",S.akku?S.akku+"%":"–");
+  setz("ckZust",S.gesperrt?"gesperrt":"frei");
+}
+function cockZu(){S.cockAn=false;const e=$("#ck");e.classList.add("aus");e.style.display="none";document.body.style.overflow=""}
+function knoepfe(an){["bAuf","bZu","bFrei","bTon","bWeg","bShot","ckAuf","ckZuBtn"].forEach(i=>{const e=$("#"+i);if(e)e.disabled=!an});const c=$("#bCk");if(c)c.disabled=false}
+
+async function verbinden(){
+  if(!navigator.bluetooth){ stat("Kein Bluetooth. Bluefy nutzen.","err"); return }
+  $("#bConn").disabled=true;
+  try{
+    const opt={optionalServices:DIENSTE};
+    if(!$("#oAlle").checked) opt.filters=[{namePrefix:"lime-"}];
+    else opt.acceptAllDevices=true;
+    const dev=await navigator.bluetooth.requestDevice(opt);
+    S.dev=dev; dev.addEventListener("gattserverdisconnected",weg);
+    log("Gewählt: "+(dev.name||"ohne Namen"),"ok");
+    const k=kennung();
+    if(k){ S.pw=k; spaet("pw",k); setz("pwOut","Passwort aus dem Namen: "+k); log("Passwort übernommen.","ok") }
+    else setz("pwOut","Kein Passwort im Namen — Diagnose öffnen.");
+    await aufbauen();
+  }catch(e){ log("Verbinden: "+e.message,"err"); stat("Abgebrochen.","warn"); $("#bConn").disabled=false }
+}
+
+async function aufbauen(){
+  const srv=await S.dev.gatt.connect();
+  S.verb=true; pill(S.dev.name||"verbunden",true);
+  log("Verbunden. Klopfe alle Dienste ab …");
+  let svc=[]; try{ svc=await srv.getPrimaryServices() }catch(e){ log("Dienste: "+e.message,"warn") }
+  S.schreib=[]; let melder=0;
+  for(const s of svc){
+    let chs=[]; try{ chs=await s.getCharacteristics() }catch(_){ continue }
+    log("Dienst "+s.uuid.slice(4,8),"dim");
+    for(const ch of chs){
+      const p=ch.properties||{};
+      const art=["read","write","writeWithoutResponse","notify","indicate"].filter(k=>p[k]);
+      log("  Kanal "+ch.uuid.slice(4,8)+" ["+(art.join(" ")||"–")+"]","dim");
+      if(p.notify||p.indicate){
+        melder++;
+        ch.startNotifications().then(()=>ch.addEventListener("characteristicvaluechanged",empfangen)).catch(()=>{});
+      }
+      if(p.write||p.writeWithoutResponse) S.schreib.push(ch);
+    }
+  }
+  const sel=$("#wsel"); sel.innerHTML='<option value="">– keiner –</option>';
+  S.schreib.forEach((c,i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=c.uuid.slice(0,8);sel.append(o)});
+  if(S.schreib.length) sel.value="0";
+  S.ziel=S.schreib[0]||null;
+  log(svc.length+" Dienste, "+S.schreib.length+" schreibbar, "+melder+" meldend.","dim");
+  if(!S.ziel){ stat("Roller nimmt keine Daten an. Anderen Roller probieren.","err"); S.verb=false; return }
+  await sleep(1000);
+  lebenszeichen();
+  knoepfe(true);
+  stat("Verbunden. Jetzt ENTSPERREN.","ok");
+}
+
+function lebenszeichen(){
+  clearInterval(S.hb);
+  S.hb=setInterval(()=>{ if(!S.verb||S.busy) return; schreib(frame(0x1101,"LIM EBIKE")).catch(()=>{}) },500);
+}
+
+async function schreib(b){
+  const d=b instanceof Uint8Array?b:new Uint8Array(b);
+  if($("#oBcast").checked){
+    await Promise.all(S.schreib.map(c=>{
+      const p=c.properties||{};
+      if(p.writeWithoutResponse&&c.writeValueWithoutResponse) return c.writeValueWithoutResponse(d).catch(()=>{});
+      if(c.writeValue) return c.writeValue(d).catch(()=>{});
+      return Promise.resolve();
+    }));
+    return;
+  }
+  const t=S.ziel; if(!t) throw new Error("kein Kanal");
+  const p=t.properties||{}; const v=[];
+  if((p.writeWithoutResponse)&&t.writeValueWithoutResponse&&$("#wmode").value!=="resp") v.push(()=>t.writeValueWithoutResponse(d));
+  if(t.writeValue) v.push(()=>t.writeValue(d));
+  let letzter=null;
+  for(const f of v){ try{ await f(); return }catch(e){ letzter=e } }
+  throw letzter||new Error("Schreiben ging nicht");
+}
+
+async function senden(b,pause){
+  if(!S.verb) throw new Error("nicht verbunden");
+  const d=b instanceof Uint8Array?b:new Uint8Array(b);
+  log("» "+hex(d),"tx"); await schreib(d); if(pause) await sleep(pause);
+}
+
+function empfangen(ev){
+  const ch=ev.target; if(!ch||!ch.value) return;
+  let b; try{const v=ch.value;b=new Uint8Array(v.buffer,v.byteOffset,v.byteLength)}catch(_){return}
+  S.antwort++; log("« "+hex(b),"rx");
+  if(b[0]===0x46&&b[1]===0x58&&b.length>=42){ S.tempo=b[8]||0; S.akku=b[19]||0; setz("ckSpd",S.tempo); setz("ckBat",S.akku+"%") }
+  if(b[0]===0x46&&b[1]===0x43&&b.length>=8){
+    const c=crc16(b.subarray(0,b.length-2));
+    if(((c>>8)&0xFF)===b[b.length-2]&&(c&0xFF)===b[b.length-1]) log("Antwort mit gültiger Prüfsumme.","ok");
+    if(b[2]===0x16&&b[3]===0x12&&b.length>5){ S.akku=b[5]; setz("ckBat",b[5]+"%") }
+    if(b[2]===0x16&&b[3]===0x13&&b.length>6){ S.tempo=((b[5]<<8)|b[6])/100; setz("ckSpd",Math.round(S.tempo)) }
+  }
+  const t=new TextDecoder().decode(b);
+  if(/unlock|OKSCM|"lock"/i.test(t)) log("Roller antwortet inhaltlich.","ok");
+}
+
+function kette(auf){
+  const pw=pwJetzt();
+  return auf?[
+    ["AT Anmeldung",()=>at("ATH","",pw)],
+    ["Rahmen 1661 F1",()=>frame(0x1661,[0xF1])],
+    ["Text unlock",()=>enc("unlock")],
+    ["AT Befehl",()=>at("CMD",'"unlock":1',pw)],
+    ["Rahmen 1114",()=>frame(0x1114)],
+    ["AT Abfrage",()=>at("QRY",'"unlock":1',pw)],
+    ["AT Debug",()=>at("DBG",'"unlock":1',pw)],
+    ["Dauer 1663 F1",()=>frame(0x1663,[0xF1])],
+    ["Text unlockforever",()=>enc("unlockforever")]
+  ]:[
+    ["Text lock",()=>enc("lock")],
+    ["Rahmen 1661 F0",()=>frame(0x1661,[0xF0])],
+    ["Rahmen 1613 F1",()=>frame(0x1613,[0xF1])],
+    ["AT Befehl zu",()=>at("CMD",'"unlock":0',pw)]
+  ];
+}
+
+async function schalten(auf){
+  if(S.busy) return;
+  if(!S.verb){ stat("Erst verbinden.","warn"); return }
+  S.busy=true; knoepfe(false);
+  let erfolg=false;
+  try{
+    for(let r=1;r<=3&&!erfolg;r++){
+      if(r>1) log("Runde "+r+" …","warn");
+      for(const [name,bau] of kette(auf)){
+        stat("Versuche: "+name+" …",""); S.antwort=0;
+        try{ await senden(bau(),340) }
+        catch(e){
+          log(name+": "+e.message,"err");
+          if(/disconnect|GATT/i.test(e.message)&&$("#oRecon").checked){ try{ await aufbauen(); await senden(bau(),340) }catch(_){} }
+        }
+        if(S.antwort>0){ erfolg=true; log("Antwort auf: "+name,"ok"); break }
+      }
+    }
+    if(!erfolg){
+      log("Kein Rückkanal — sende blind.","warn");
+      for(let i=0;i<4;i++){
+        try{ await senden(auf?frame(0x1661,[0xF1]):frame(0x1661,[0xF0]),600) }catch(_){}
+        try{ await senden(auf?enc("unlock"):enc("lock"),600) }catch(_){}
+      }
+    }
+  }finally{ S.busy=false; knoepfe(true) }
+  S.gesperrt=!auf;
+  stat(auf?"Roller ist offen.":"Roller ist zu.", erfolg?"ok":"warn");
+  if(auf) frei();
+}
+
+function frei(){
+  clearInterval(S.freiTimer); let n=0;
+  S.freiTimer=setInterval(()=>{
+    if(!S.verb||S.busy||n++>20) return clearInterval(S.freiTimer);
+    schreib(frame(0x1663,[0xF1])).catch(()=>{});
+  },1500);
+}
+
+async function testlauf(){
+  if(!S.verb){ stat("Erst verbinden.","warn"); return }
+  stat("Teste alle Formate …","");
+  for(const [name,bau] of kette(true)){
+    S.antwort=0;
+    try{ await senden(bau(),300) }catch(_){}
+    log((S.antwort?"✔ ":"✘ ")+name, S.antwort?"ok":"dim");
+  }
+  stat("Fertig. Was ein ✔ hat, funktioniert.","ok");
+}
+
+function weg(){
+  clearInterval(S.hb); clearInterval(S.freiTimer);
+  S.verb=false; S.schreib=[]; S.ziel=null;
+  pill("aus",false); knoepfe(false); cockZu(); $("#bConn").disabled=false;
+  stat("Verbindung weg.","warn");
+}
+
+$("#bConn").onclick=verbinden;
+$("#bAuf").onclick=()=>schalten(true);
+$("#bZu").onclick=()=>schalten(false);
+$("#ckAuf").onclick=()=>schalten(true);
+$("#ckZuBtn").onclick=()=>schalten(false);
+$("#bCk").onclick=cockAuf;
+$("#ckZu").onclick=cockZu;
+$("#bWeg").onclick=()=>{ try{ if(S.dev&&S.dev.gatt.connected) S.dev.gatt.disconnect() }catch(_){}; weg() };
+$("#bFrei").onclick=async()=>{ if(!S.verb) return; try{ await senden(frame(0x1663,[0xF1]),200); await senden(enc("unlockforever"),200); stat("Bleibt nach dem Trennen offen.","ok") }catch(e){ stat(e.message,"err") } };
+$("#bTon").onclick=async()=>{ if(!S.verb) return; try{ await senden(frame(0x1663,[0xF0]),200); stat("Signal gesendet.","ok") }catch(e){ stat(e.message,"err") } };
+$("#bShot").onclick=testlauf;
+$("#bPw").onclick=()=>{ const v=pwRechnen($("#imei").value); if(!v) return stat("Mindestens 8 Ziffern.","warn"); S.pw=v; spaet("pw",v); setz("pwOut","Passwort: "+v); stat("Passwort gerechnet.","ok") };
+$("#pwFeld").oninput=()=>{ S.pw=$("#pwFeld").value.trim().toUpperCase(); setz("pwOut","Passwort: "+(S.pw||"keins")) };
+$("#bSend").onclick=async()=>{ const c=parseInt(($("#cCmd").value||"").replace(/[^0-9a-f]/gi,""),16); if(isNaN(c)) return; try{ await senden(frame(c,vonHex($("#cPay").value)),300); stat("Gesendet.","ok") }catch(e){ stat(e.message,"err") } };
+$("#bRaw").onclick=async()=>{ const t=($("#cRaw").value||"").trim(); if(!t) return; const b=/^[0-9a-f\s]+$/i.test(t)?vonHex(t):enc(t); try{ await senden(b,300); stat("Gesendet.","ok") }catch(e){ stat(e.message,"err") } };
+$("#bClear").onclick=()=>{ logEl.innerHTML="" };
+$("#bCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText(logEl.innerText); stat("Kopiert.","ok") }catch(_){ stat("Kopieren ging nicht.","warn") } };
+$("#wsel").onchange=()=>{ const i=$("#wsel").value; S.ziel=i===""?null:S.schreib[+i]||null };
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&S.cockAn) cockZu() });
+
+S.pw=hole("pw","")||"";
+if(S.pw) setz("pwOut","Passwort gespeichert: "+S.pw);
+
+for(const auf of [true,false]){
+  for(const [name,bau] of kette(auf)){
+    try{ const b=bau(); if(b[0]===0x46){ const o=frameOk(b); if(o!==true) log("Rahmen "+name+": "+o,"err") } }
+    catch(e){ log("Rahmen "+name+": "+e.message,"err") }
+  }
+}
+cockZu();
+stat("Bereit. Erst verbinden.","");
+</script>
+</body></html>
